@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chúc Mừng Ngày 14/2</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Arial', sans-serif; 
+            background-color: #f7f7f7; 
+            animation: changeBackground 5s infinite alternate; /* Hiệu ứng chuyển nền */
+            color: white;
+        }
+
+        canvas { display: block; }
+
+        /* Áp dụng màu chủ đạo */
+        :root {
+            --color-1: #FF69B4;
+            --color-2: #FF1493;
+            --color-3: #FF4500;
+            --color-4: #DC143C;
+        }
+
+        @keyframes changeBackground {
+            0% { background-color: var(--color-1); }
+            50% { background-color: var(--color-2); }
+            100% { background-color: var(--color-4); }
+        }
+
+        #startButton, #toggleMusic {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 12px 24px;
+            font-size: 20px;
+            background: linear-gradient(45deg, var(--color-4), var(--color-1));
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.3s, background 0.3s, color 0.3s;
+        }
+
+        #startButton:hover, #toggleMusic:hover {
+            background: linear-gradient(45deg, var(--color-2), var(--color-3));
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        #messages {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+        }
+
+        #toggleMusic {
+            top: 10px;
+            left: 10px;
+            transform: none;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="background-music" loop>
+        <source src="music.mp3" type="audio/mpeg">
+        Trình duyệt của bạn không hỗ trợ phát nhạc.
+    </audio>
+
+    <button id="startButton">Bắt đầu</button>
+    <button id="toggleMusic">Tắt nhạc</button>
+    <div id="messages"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const light = new THREE.DirectionalLight(0xffffff, 1.2);
+        light.position.set(5, 5, 5);
+        scene.add(light);
+
+        const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
+        scene.add(ambientLight);
+
+        let heart;
+        const loader = new THREE.GLTFLoader();
+        loader.load('heart.glb', function(gltf) {
+            heart = gltf.scene;
+            heart.scale.set(0.5, 0.5, 0.5);
+            scene.add(heart);
+        });
+
+        camera.position.set(0, 1, 5);
+
+        let scaleFactor = 1;
+        let scaleSpeed = 0.015;
+        let direction = 1;
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (scaleFactor >= 1.2 || scaleFactor <= 0.8) {
+                direction *= -1;
+            }
+            scaleFactor += scaleSpeed * direction;
+            if (heart) {
+                heart.scale.set(scaleFactor, scaleFactor, scaleFactor);
+            }
+
+            camera.position.x = 5 * Math.sin(Date.now() * 0.001);
+            camera.position.z = 5 * Math.cos(Date.now() * 0.001);
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        const messages = [
+            "Chúc cậu một ngày Valentine thật ngọt ngào và tràn đầy niềm vui!",
+            "Hy vọng một ngày nào đó, mình có thể trở thành phần quan trọng với ",
+            "cuộc sống của cậu như cách cậu đã làm cho ngày hôm nay của tớ trở nên đặc biệt",
+            "Vàaaaa aaaaa aaaaaaa aaaaa",
+            "Happy Valentine's Day! (Cucarot)💖"
+        ];
+
+        let messageIndex = 0;
+        const messageElement = document.getElementById('messages');
+
+        function showNextMessage() {
+            if (messageIndex < messages.length) {
+                let currentMessage = messages[messageIndex];
+                let currentCharIndex = 0;
+                messageElement.textContent = "";
+                messageElement.style.opacity = 1;
+
+                const messageLine = document.createElement('div');
+                let currentText = '';
+                let interval = setInterval(() => {
+                    if (currentCharIndex < currentMessage.length) {
+                        currentText += currentMessage[currentCharIndex];
+                        messageLine.textContent = currentText;
+                        messageElement.appendChild(messageLine);
+                        currentCharIndex++;
+                    } else {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            messageElement.style.opacity = 0;
+                            setTimeout(() => {
+                                messageElement.style.opacity = 1;
+                                messageIndex++;
+                                showNextMessage();
+                            }, 500);
+                        }, 1000);
+                    }
+                }, 100);
+            }
+        }
+
+        document.getElementById('startButton').addEventListener('click', function() {
+            this.style.display = 'none';
+            showNextMessage();
+        });
+
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+
+        const audio = document.getElementById("background-music");
+        const button = document.getElementById("toggleMusic");
+
+        window.addEventListener("load", () => {
+    const audio = document.getElementById("background-music");
+    audio.play().catch(error => {
+        console.log("Trình duyệt chặn tự động phát nhạc:", error);
+            });
+        });
+
+        button.addEventListener("click", () => {
+            if (audio.paused) {
+                audio.play();
+                button.innerText = "Tắt nhạc";
+            } else {
+                audio.pause();
+                button.innerText = "Bật nhạc";
+            }
+        });
+
+    </script>
+</body>
+</html>
